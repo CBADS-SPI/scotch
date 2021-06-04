@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2009,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,19 +40,21 @@
 /**                tion routine for graphs.                **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     29 sep 1998     **/
+/**                                 to   : 29 sep 1998     **/
 /**                # Version 0.2  : from : 08 may 2000     **/
-/**                                 to     09 may 2000     **/
+/**                                 to   : 09 may 2000     **/
 /**                # Version 1.0  : from : 01 jun 2002     **/
-/**                                 to     03 jun 2002     **/
+/**                                 to   : 03 jun 2002     **/
 /**                # Version 1.1  : from : 26 jun 2002     **/
-/**                                 to     26 jun 2002     **/
+/**                                 to   : 26 jun 2002     **/
 /**                # Version 2.0  : from : 21 mar 2003     **/
-/**                                 to     21 mar 2003     **/
+/**                                 to   : 21 mar 2003     **/
 /**                # Version 3.0  : from : 02 mar 2004     **/
-/**                                 to     02 mar 2004     **/
+/**                                 to   : 02 mar 2004     **/
 /**                # Version 5.1  : from : 22 jan 2009     **/
-/**                                 to     22 jan 2009     **/
+/**                                 to   : 22 jan 2009     **/
+/**                # Version 6.0  : from : 21 jan 2020     **/
+/**                                 to   : 22 jan 2020     **/
 /**                                                        **/
 /**   NOTES      : # symbolFaxGraph() could have called    **/
 /**                  symbolFax() in the regular way, as    **/
@@ -71,12 +73,9 @@
 #define SYMBOL_FAX
 #define SYMBOL_FAX_GRAPH
 
+#include "module.h"
 #include "common.h"
-#ifdef SCOTCH_PTSCOTCH
-#include "ptscotch.h"
-#else /* SCOTCH_PTSCOTCH */
 #include "scotch.h"
-#endif /* SCOTCH_PTSCOTCH */
 #include "graph.h"
 #include "symbol.h"
 #include "order.h"
@@ -99,31 +98,34 @@
 
 int
 symbolFaxGraph (
-SymbolMatrix * const        symbptr,              /*+ Symbolic block matrix [based]        +*/
-const Graph * const         grafptr,              /*+ Matrix adjacency structure [based]   +*/
-const Order * const         ordeptr)              /*+ Matrix ordering                      +*/
+SymbolMatrix * const        symbptr,              /*+ Symbolic block matrix [based]      +*/
+const Graph * const         grafptr,              /*+ Matrix adjacency structure [based] +*/
+const Order * const         ordeptr)              /*+ Matrix ordering                    +*/
 {
   INT                   baseval;
   INT                   vertnbr;
   INT *                 verttab;
   const INT * restrict  verttax;
+  INT *                 vendtab;
+  const INT * restrict  vendtax;
   INT                   edgenbr;
   INT                   edgenum;
   INT *                 edgetab;
   const INT * restrict  edgetax;
 
-  SCOTCH_graphData (grafptr, &baseval, &vertnbr, &verttab, NULL, NULL, NULL, &edgenbr, &edgetab, NULL);
+  SCOTCH_graphData (grafptr, &baseval, &vertnbr, &verttab, &vendtab, NULL, NULL, &edgenbr, &edgetab, NULL);
   verttax = verttab - baseval;
+  vendtax = vendtab - baseval;
   edgetax = edgetab - baseval;
 
 #define SYMBOL_FAX_ITERATOR(ngbdptr, vertnum, vertend) \
-                                    for (edgenum = verttax[vertnum];     \
-                                         edgenum < verttax[vertnum + 1]; \
-                                         edgenum ++) {                   \
+                                    for (edgenum = verttax[vertnum]; \
+                                         edgenum < vendtax[vertnum]; \
+                                         edgenum ++) {               \
                                       vertend = edgetax[edgenum];
 
 #define SYMBOL_FAX_VERTEX_DEGREE(ngbdptr, vertnum) \
-                                    (verttax[(vertnum) + 1] - verttax[(vertnum)])
+                                    (vendtax[(vertnum)] - verttax[(vertnum)])
 
   {
 #define SYMBOL_FAX_INCLUDED

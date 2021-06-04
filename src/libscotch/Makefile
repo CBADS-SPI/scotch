@@ -1,4 +1,4 @@
-## Copyright 2004,2007-2019 IPB, Universite de Bordeaux, INRIA & CNRS
+## Copyright 2004,2007-2020 IPB, Universite de Bordeaux, INRIA & CNRS
 ##
 ## This file is part of the Scotch software package for static mapping,
 ## graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ## use, modify and/or redistribute the software under the terms of the
 ## CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ## URL: "http://www.cecill.info".
-## 
+##
 ## As a counterpart to the access to the source code and rights to copy,
 ## modify and redistribute granted by the license, users are provided
 ## only with a limited warranty and the software's author, the holder of
 ## the economic rights, and the successive licensors have only limited
 ## liability.
-## 
+##
 ## In this respect, the user's attention is drawn to the risks associated
 ## with loading, using, modifying and/or developing or reproducing the
 ## software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ## their requirements in conditions enabling the security of their
 ## systems and/or data to be ensured and, more generally, to use and
 ## operate it in the same conditions as regards security.
-## 
+##
 ## The fact that you are presently reading this means that you have had
 ## knowledge of the CeCILL-C license and that you accept its terms.
 ##
@@ -285,6 +285,7 @@ LIBSCOTCHDEPS	=	arch$(OBJ)				\
 			graph_clone$(OBJ)			\
 			graph_coarsen$(OBJ)			\
 			graph_diam$(OBJ)			\
+			graph_dump$(OBJ)			\
 			graph_ielo$(OBJ)			\
 			graph_induce$(OBJ)			\
 			graph_io$(OBJ)				\
@@ -299,6 +300,7 @@ LIBSCOTCHDEPS	=	arch$(OBJ)				\
 			hall_order_hx$(OBJ)			\
 			hgraph$(OBJ)				\
 			hgraph_check$(OBJ)			\
+			hgraph_dump$(OBJ)			\
 			hgraph_induce$(OBJ)			\
 			hgraph_order_bl$(OBJ)			\
 			hgraph_order_cc$(OBJ)			\
@@ -361,6 +363,7 @@ LIBSCOTCHDEPS	=	arch$(OBJ)				\
 			library_graph_color_f$(OBJ)		\
 			library_graph_diam$(OBJ)		\
 			library_graph_diam_f$(OBJ)		\
+			library_graph_dump$(OBJ)		\
 			library_graph_induce$(OBJ)		\
 			library_graph_induce_f$(OBJ)		\
 			library_graph_io_chac$(OBJ)		\
@@ -443,9 +446,9 @@ LIBSCOTCHDEPS	=	arch$(OBJ)				\
 			vmesh_store$(OBJ)			\
 			wgraph$(OBJ)				\
 			wgraph_check$(OBJ)			\
+			wgraph_part_es$(OBJ)  			\
 			wgraph_part_fm$(OBJ)  			\
 			wgraph_part_gg$(OBJ)          		\
-			wgraph_part_gp$(OBJ)	        	\
 			wgraph_part_ml$(OBJ)   			\
 			wgraph_part_rb$(OBJ)  			\
 			wgraph_part_st$(OBJ)  			\
@@ -1090,7 +1093,7 @@ dorder_tree_dist$(OBJ)		:	dorder_tree_dist.c			\
 fibo$(OBJ)			:	fibo.c					\
 					module.h				\
 					common.h				\
-					fibo.h                                  
+					fibo.h
 
 gain$(OBJ)			:	gain.c					\
 					module.h				\
@@ -1140,6 +1143,12 @@ graph_diam$(OBJ)		:	graph_diam.c				\
 					graph.h					\
 					fibo.h					\
 					graph_diam.h
+
+graph_dump$(OBJ)		:	graph_dump.c				\
+					module.h				\
+					common.h				\
+					graph.h					\
+					graph_dump.h
 
 graph_ielo$(OBJ)		:	graph_ielo.c				\
 					module.h				\
@@ -1318,6 +1327,12 @@ hgraph_check$(OBJ)		:	hgraph_check.c				\
 					common.h				\
 					graph.h					\
 					hgraph.h
+
+hgraph_dump$(OBJ)		:	hgraph_dump.c				\
+					module.h				\
+					common.h				\
+					graph.h					\
+					graph_dump.h
 
 hgraph_induce$(OBJ)		:	hgraph_induce.c				\
 					hgraph_induce_edge.c			\
@@ -2287,6 +2302,13 @@ library_graph_diam_f$(OBJ)	:	library_graph_diam_f.c			\
 					common.h				\
 					scotch.h
 
+library_graph_dump$(OBJ)	:	library_graph_dump.c			\
+					module.h				\
+					common.h				\
+					graph.h					\
+					graph_dump.h				\
+					scotch.h
+
 library_graph_induce$(OBJ)	:	library_graph_induce.c			\
 					module.h				\
 					common.h				\
@@ -2656,7 +2678,7 @@ parser_ll.c			:	parser_ll.l				\
 					parser_ly.h
 					($(LEX) parser_ll.l &&			\
 					 $(MV) lex.yy.c parser_ll.c) ||		\
-					$(CP) last_resort/parser_ll.c . 
+					$(CP) last_resort/parser_ll.c .
 
 parser_ll$(OBJ)			:	parser_ll.c				\
 					parser_ly.h
@@ -2981,6 +3003,18 @@ wgraph_check$(OBJ)		:	wgraph_check.c				\
 					graph.h					\
 					wgraph.h
 
+wgraph_part_es$(OBJ)		:	wgraph_part_es.c			\
+					module.h				\
+					common.h				\
+					parser.h				\
+					graph.h					\
+					arch$(OBJ)				\
+					mapping.h				\
+					kgraph.h				\
+					kgraph_map_st.h				\
+					wgraph.h				\
+					wgraph_part_es.h
+
 wgraph_part_fm$(OBJ)		:	wgraph_part_fm.c			\
 					module.h				\
 					common.h				\
@@ -2994,13 +3028,6 @@ wgraph_part_gg$(OBJ)		:	wgraph_part_gg.c			\
 					graph.h					\
 					wgraph.h				\
 					wgraph_part_gg.h
-
-wgraph_part_gp$(OBJ)		:	wgraph_part_gp.c			\
-					module.h				\
-					common.h				\
-					graph.h					\
-					wgraph.h				\
-					wgraph_part_gp.h
 
 wgraph_part_ml$(OBJ)		: 	wgraph_part_ml.c			\
 					module.h				\
@@ -3033,12 +3060,14 @@ wgraph_part_st$(OBJ)		:	wgraph_part_st.c			\
 					parser.h				\
 					graph.h					\
 					graph_coarsen.h				\
+					kgraph.h				\
+					kgraph_map_st.h				\
 					vgraph.h				\
 					vgraph_separate_st.h			\
 					wgraph.h				\
+					wgraph_part_es.h			\
 					wgraph_part_fm.h			\
 					wgraph_part_gg.h			\
-					wgraph_part_gp.h			\
 					wgraph_part_ml.h			\
 					wgraph_part_rb.h			\
 					wgraph_part_zr.h			\

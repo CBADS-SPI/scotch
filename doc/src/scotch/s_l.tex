@@ -608,8 +608,8 @@ Array of ascendants of permuted column blocks in the separators tree.
 {\tt treetab[i]} is the index of the father of column block $i$ in the
 separators tree, or $-1$ if column block $i$ is the root of the
 separators tree. Whenever separators or leaves of the separators tree
-are split into subblocks, as the block splitting, minimum fill or minimum
-degree methods do, all subblocks of the same level are linked to the
+are split into sub-blocks, as the block splitting, minimum fill or minimum
+degree methods do, all sub-blocks of the same level are linked to the
 column block of higher index belonging to the closest separator
 ancestor. Indices in {\tt treetab} are based, in the same way as for
 the other blocking structures. See Figure~\ref{fig-lib-ord-block} for
@@ -722,6 +722,7 @@ Order nested dissection separators as cheaply as possible.
 
 At the time being, mapping methods only apply to graphs, as there is
 not yet a mesh mapping tool in the \scotch\ package.
+
 Mapping strategies are made of methods, with optional parameters enclosed
 between curly braces, and separated by commas, in the form of
 {\it method\/}{[{\tt \{}{\it parameters\/}{\tt \}}]}\enspace.
@@ -1103,7 +1104,7 @@ condition is true, when mapping onto variable-sized architectures (see
 section~\ref{sec-algo-variable}).
 \end{itemize}
 
-\subsubsection{Vertex partitioning strategy strings}
+\subsubsection{Vertex partitioning (with overlap) strategy strings}
 \label{sec-lib-format-part-ovl}
 
 Vertex partitioning is a special form of graph partitioning, in which
@@ -1122,6 +1123,17 @@ the form of {\it method\/}{[{\tt \{}{\it parameters\/}{\tt \}}]}\enspace.
 The currently available mapping methods are the following.
 
 \begin{itemize}
+\iteme[{\tt e}]
+K-way edge partitioning method. The parameters of the Fiduccia-Mattheyses method
+are listed below.
+\begin{itemize}
+\iteme[{\tt strat=}{\it strat}]
+K-way partitioning strategy to be performed. It is in fact a k-way
+mapping strategy, that is applied to a complete target graph of as
+many vertices as the prescribed number of parts. The syntax of mapping
+strategy strings is defined within section~\ref{sec-lib-format-map},
+at page~\pageref{sec-lib-format-map}.
+\end{itemize}
 \iteme[{\tt f}]
 Fiduccia-Mattheyses method. The parameters of the Fiduccia-Mattheyses method
 are listed below.
@@ -1147,16 +1159,6 @@ has not yielded any improvement of the cost function, or when the
 maximum number of passes has been reached. Value $-1$ stands for an
 infinite number of passes, that is, as many as needed by the algorithm
 to converge.
-\end{itemize}
-\iteme[{\tt g}]
-Gibbs-Poole-Stockmeyer method. This is a k-way version of the
-original algorithm, in which parts are grown one after the
-other. Consequently, depending on graph topology, this method is
-likely to yield disconnected parts, with higher probability as the
-number of part increases. This method has only one parameter.
-\begin{itemize}
-\iteme[{\tt pass=}{\it nbr}]
-Set the number of sweeps performed by the algorithm.
 \end{itemize}
 \iteme[{\tt h}]
 Greedy-graph-growing method. This is a $k$-way version of the
@@ -1279,11 +1281,16 @@ lead to a significant reduction of the required memory space and time,
 because it helps carving large triangular blocks.
 The parameters of the blocking method are described below.
 \begin{itemize}
-\iteme[{\tt cmin=}{\it size}]
-Set the minimum size of the resulting subblocks, in number of columns.
-Blocks larger than twice this minimum size are cut into sub-blocks of
-equal sizes (within one), having a number of columns comprised between
-{\it size} and $2${\it size}.
+\iteme[{\tt cmin=}{\it wght}]
+Set the minimum span of the resulting sub-blocks, in terms of column
+weights. When the graph has no vertex weights (that is, all columns
+have weight $1$), \texttt{cmin} represents the minimum number of
+colums to be included within each sub-block.
+For unweighted graphs, blocks larger than twice this minimum weight
+are cut into sub-blocks of equal sizes (within one), having a number
+of columns comprised between {\it wght} and $2${\it wght}. For
+weighted graphs, the algorithm performs in a best effort to achieve
+this goal.
 \\
 The definition of {\it size} depends on the size of the graph
 to order. Large graphs cannot afford very small values, because the
@@ -1298,6 +1305,7 @@ smaller column blocks, without changing the ordering that has been
 computed.
 \end{itemize}
 \iteme[{\tt c}]
+\label{sec-lib-meth-compress}
 Compression method~\cite{ashc95}.
 The parameters of the compression method are listed below.
 \begin{itemize}
@@ -1319,17 +1327,16 @@ The parameters of the Halo Approximate Minimum Degree method are
 listed below. The Block Halo Approximate Minimum Fill method,
 described below, is more efficient and should be preferred.
 \begin{itemize}
-\iteme[{\tt cmin=}{\it size}]
-Minimum number of columns per column block. All column blocks
-of width smaller than {\it size\/} are amalgamated to their
-parent column block in the elimination tree, provided that it
-does not violate the {\tt cmax} constraint.
-\iteme[{\tt cmax=}{\it size}]
-Maximum number of column blocks over which some column block
-will not amalgamate one of its descendents in the elimination
-tree. This parameter is mainly designed to provide an upper
-bound for block size in the context of BLAS3 computations~;
-else, a huge value should be provided.
+\iteme[{\tt cmin=}{\it wght}]
+Minimum weight per column block. All column blocks of weight smaller
+than {\it wght\/} are amalgamated to their parent column block in the
+elimination tree, provided that it does not violate the {\tt cmax}
+constraint.
+\iteme[{\tt cmax=}{\it wght}]
+Maximum weight over which a column block will not amalgamate one of
+its descendents in the elimination tree. This parameter is mainly
+designed to provide an upper bound for block size in the context of
+BLAS3 computations~; else, a huge value should be provided.
 \iteme[{\tt frat=}{\it rat}]
 Fill-in ratio over which some column block will not amalgamate
 one of its descendents in the elimination tree. Typical values
@@ -1340,17 +1347,16 @@ Block Halo Approximate Minimum Fill method.
 The parameters of the Halo Approximate Minimum Fill method are
 listed below.
 \begin{itemize}
-\iteme[{\tt cmin=}{\it size}]
-Minimum number of columns per column block. All column blocks
-of width smaller than {\it size\/} are amalgamated to their
-parent column block in the elimination tree, provided that it
-does not violate the {\tt cmax} constraint.
+\iteme[{\tt cmin=}{\it wght}]
+Minimum weight per column block. All column blocks of weight smaller
+than {\it wght\/} are amalgamated to their parent column block in the
+elimination tree, provided that it does not violate the {\tt cmax}
+constraint.
 \iteme[{\tt cmax=}{\it size}]
-Maximum number of column blocks over which some column block
-will not amalgamate one of its descendents in the elimination
-tree. This parameter is mainly designed to provide an upper
-bound for block size in the context of BLAS3 computations~;
-else, a huge value should be provided.
+Maximum weight over which a column block will not amalgamate one of
+its descendents in the elimination tree. This parameter is mainly
+designed to provide an upper bound for block size in the context of
+BLAS3 computations~; else, a huge value should be provided.
 \iteme[{\tt frat=}{\it rat}]
 Fill-in ratio over which some column block will not amalgamate
 one of its descendents in the elimination tree. Typical values
@@ -3114,9 +3120,6 @@ Section~\ref{sec-lib-inttypesize} for more information on this
 issue.
 \end{itemize}
 
-
-
-
 \subsubsection{{\tt SCOTCH\_graphDiamPV}}
 
 \begin{itemize}
@@ -3151,6 +3154,36 @@ vertices.
 diameter has been successfully computed, the \texttt{SCOTCH\_\lbt
 NUMMAX} maximum positive value if the graph is disconnected, and $-1$
 on error.
+\end{itemize}
+
+\subsubsection{{\tt SCOTCH\_graphDump}}
+
+\begin{itemize}
+\progsyn
+
+{\tt\begin{tabular}{l@{}ll}
+int SCOTCH\_graphDump ( & const SCOTCH\_Graph * & grafptr, \\
+                        & const char *          & prefptr, \\
+                        & const char *          & suffptr, \\
+                        & FILE *                & stream)
+\end{tabular}}
+
+\progdes
+
+The \texttt{SCOTCH\_graphDump} routine outputs the contents of the
+\texttt{SCOTCH\_\lbt Graph} structure pointed to by \texttt{grafptr}
+to stream \texttt{stream}, in the form of a C source code. The names
+of the data arrays that encode the various graph arrays (see
+Section~\ref{sec-lib-format-graph}), as well as the
+``\texttt{GraphBuild}'' stem of the graph building function name, are
+prefixed and suffixed by the \texttt{prefptr} and \texttt{suffptr}
+strings, respectively.
+
+\progret
+
+{\tt SCOTCH\_graphDump} returns $0$ if the C source code corresponding
+to the graph structure has been successfully written to {\tt stream},
+and $1$ else.
 \end{itemize}
 
 \subsubsection{{\tt SCOTCH\_graphExit}}

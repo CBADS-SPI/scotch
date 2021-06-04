@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2016,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2016,2018-2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,19 +39,21 @@
 /**                for the whole libSCOTCH library module. **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 22 jun 1998     **/
-/**                                 to     13 may 1998     **/
+/**                                 to   : 13 may 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     03 oct 1998     **/
+/**                                 to   : 03 oct 1998     **/
 /**                # Version 3.4  : from : 01 nov 2001     **/
-/**                                 to     01 nov 2001     **/
+/**                                 to   : 01 nov 2001     **/
 /**                # Version 4.0  : from : 12 dec 2001     **/
-/**                                 to     24 nov 2005     **/
+/**                                 to   : 24 nov 2005     **/
 /**                # Version 5.0  : from : 24 feb 2007     **/
-/**                                 to     24 jul 2007     **/
+/**                                 to   : 24 jul 2007     **/
 /**                # Version 5.1  : from : 25 oct 2007     **/
-/**                                 to     20 feb 2011     **/
+/**                                 to   : 20 feb 2011     **/
 /**                # Version 6.0  : from : 12 sep 2008     **/
-/**                                 to     26 oct 2019     **/
+/**                                 to   : 24 aug 2020     **/
+/**                # Version 6.1  : from : 24 aug 2020     **/
+/**                                 to   : 01 sep 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -146,6 +148,22 @@
 /*
 ** Debug values.
 */
+
+#ifdef SCOTCH_DEBUG_FULL
+#ifndef SCOTCH_DEBUG_ALL
+#define SCOTCH_DEBUG_ALL
+#endif /* SCOTCH_DEBUG_ALL */
+
+#define SCOTCH_DEBUG_BGRAPH3
+#define SCOTCH_DEBUG_DGRAPH3
+#define SCOTCH_DEBUG_FIBO3
+#define SCOTCH_DEBUG_GAIN3
+#define SCOTCH_DEBUG_KGRAPH3
+#define SCOTCH_DEBUG_PARSER3
+#define SCOTCH_DEBUG_VGRAPH3
+#define SCOTCH_DEBUG_VMESH3
+#define SCOTCH_DEBUG_WGRAPH3
+#endif /* SCOTCH_DEBUG_FULL */
 
 #ifdef SCOTCH_DEBUG_ALL
 #ifndef SCOTCH_DEBUG
@@ -781,6 +799,7 @@
 #define gainTablFrst                SCOTCH_NAME_INTERN (gainTablFrst)
 #define gainTablInit                SCOTCH_NAME_INTERN (gainTablInit)
 #define gainTablNext                SCOTCH_NAME_INTERN (gainTablNext)
+#define gainTablMove                SCOTCH_NAME_INTERN (gainTablMove)
 
 #define geomExit                    SCOTCH_NAME_INTERN (geomExit)
 #define geomInit                    SCOTCH_NAME_INTERN (geomInit)
@@ -799,6 +818,10 @@
 #define graphCoarsenBuild           SCOTCH_NAME_INTERN (graphCoarsenBuild)
 #define graphCoarsenMatch           SCOTCH_NAME_INTERN (graphCoarsenMatch)
 #define graphDiamPV                 SCOTCH_NAME_INTERN (graphDiamPV)
+#define graphDump                   SCOTCH_NAME_INTERN (graphDump)
+#define graphDump2                  SCOTCH_NAME_INTERN (graphDump2)
+#define graphDumpArray              SCOTCH_NAME_INTERN (graphDumpArray)
+#define graphDumpArrays             SCOTCH_NAME_INTERN (graphDumpArrays)
 #define graphIelo                   SCOTCH_NAME_INTERN (graphIelo)
 #define graphInduceList             SCOTCH_NAME_INTERN (graphInduceList)
 #define graphInducePart             SCOTCH_NAME_INTERN (graphInducePart)
@@ -814,8 +837,8 @@
 #define graphGeomSaveMmkt           SCOTCH_NAME_INTERN (graphGeomSaveMmkt)
 #define graphPtscotch               SCOTCH_NAME_INTERN (graphPtscotch)
 
-#define hallOrderHdHalmd            SCOTCH_NAME_INTERN (hallOrderHdHalmd)
-#define hallOrderHfR2hamdf4         SCOTCH_NAME_INTERN (hallOrderHfR2hamdf4)
+#define hallOrderHdR2Halmd          SCOTCH_NAME_INTERN (hallOrderHdR2Halmd)
+#define hallOrderHfR3Hamdf4         SCOTCH_NAME_INTERN (hallOrderHfR3Hamdf4)
 #define hallOrderHxBuild            SCOTCH_NAME_INTERN (hallOrderHxBuild)
 #define hallOrderHxTree             SCOTCH_NAME_INTERN (hallOrderHxTree)
 
@@ -840,6 +863,7 @@
 #define hgraphFree                  SCOTCH_NAME_INTERN (hgraphFree)
 #define hgraphInduceList            SCOTCH_NAME_INTERN (hgraphInduceList)
 #define hgraphCheck                 SCOTCH_NAME_INTERN (hgraphCheck)
+#define hgraphDump                  SCOTCH_NAME_INTERN (hgraphDump)
 #define hgraphOrderBl               SCOTCH_NAME_INTERN (hgraphOrderBl)
 #define hgraphOrderCc               SCOTCH_NAME_INTERN (hgraphOrderCc)
 #define hgraphOrderCp               SCOTCH_NAME_INTERN (hgraphOrderCp)
@@ -1049,9 +1073,9 @@
 #define wgraphExit                  SCOTCH_NAME_INTERN (wgraphExit)
 #define wgraphCheck                 SCOTCH_NAME_INTERN (wgraphCheck)
 #define wgraphZero                  SCOTCH_NAME_INTERN (wgraphZero)
+#define wgraphPartEs                SCOTCH_NAME_INTERN (wgraphPartEs)
 #define wgraphPartFm                SCOTCH_NAME_INTERN (wgraphPartFm)
 #define wgraphPartGg                SCOTCH_NAME_INTERN (wgraphPartGg)
-#define wgraphPartGp                SCOTCH_NAME_INTERN (wgraphPartGp)
 #define wgraphPartMl                SCOTCH_NAME_INTERN (wgraphPartMl)
 #define wgraphPartRb                SCOTCH_NAME_INTERN (wgraphPartRb)
 #define wgraphPartSt                SCOTCH_NAME_INTERN (wgraphPartSt)

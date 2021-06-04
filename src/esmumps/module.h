@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,45 +39,85 @@
 /**                for the ESMUMPS library module.         **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 22 jan 2009     **/
-/**                                 to     22 jan 2009     **/
+/**                                 to   : 22 jan 2009     **/
 /**                # Version 6.0  : from : 21 may 2018     **/
-/**                                 to     21 may 2018     **/
+/**                                 to   : 21 may 2018     **/
+/**                # Version 6.0  : from : 21 may 2018     **/
+/**                                 to   : 21 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
 #define MODULE_H
 
 /*
+** Debug values.
+*/
+
+#ifdef SCOTCH_DEBUG_FULL
+#ifndef SCOTCH_DEBUG_ALL
+#define SCOTCH_DEBUG_ALL
+#endif /* SCOTCH_DEBUG_ALL */
+
+#define ESMUMPS_DEBUG_OUTPUT
+#endif /* SCOTCH_DEBUG_FULL */
+
+#ifdef SCOTCH_DEBUG_ALL
+#define DOF_DEBUG
+#define ESMUMPS_DEBUG
+#define FAX_DEBUG
+#define GRAPH_DEBUG
+#define ORDER_DEBUG
+#define SYMBOL_DEBUG
+#endif /* SCOTCH_DEBUG_ALL */
+
+/*
 ** Function renaming.
 */
 
-#if ((! defined SCOTCH_COMMON_EXTERNAL) || (defined SCOTCH_COMMON_RENAME))
-#define clockGet                    _SCOTCHclockGet
+#if ((! defined SCOTCH_COMMON_EXTERNAL) || (defined SCOTCH_COMMON_RENAME)) /* Taken from src/libscotch/module.h */
+#ifndef SCOTCH_NAME_SUFFIX
+#define SCOTCH_NAME_SUFFIXC
+#else /* SCOTCH_NAME_SUFFIX */
+#ifndef SCOTCH_NAME_SUFFIXC
+#define SCOTCH_NAME_SUFFIXC         SCOTCH_NAME_SUFFIX
+#endif /* SCOTCH_NAME_SUFFIXC */
+#ifndef SCOTCH_RENAME
+#define SCOTCH_RENAME
+#endif /* SCOTCH_RENAME */
+#ifndef SCOTCH_RENAME_PUBLIC
+#define SCOTCH_RENAME_PUBLIC
+#endif /* SCOTCH_RENAME_PUBLIC */
+#endif /* SCOTCH_NAME_SUFFIX   */
+#ifndef SCOTCH_NAME_SUFFIXFL
+#define SCOTCH_NAME_SUFFIXFL        SCOTCH_NAME_SUFFIXC
+#define SCOTCH_NAME_SUFFIXFU        SCOTCH_NAME_SUFFIXC
+#else /* SCOTCH_NAME_SUFFIXFL */
+#ifndef SCOTCH_RENAME
+#define SCOTCH_RENAME
+#endif /* SCOTCH_RENAME */
+#ifndef SCOTCH_RENAME_PUBLIC
+#define SCOTCH_RENAME_PUBLIC
+#endif /* SCOTCH_RENAME_PUBLIC */
+#endif /* SCOTCH_NAME_SUFFIXFL */
+#define SCOTCH_NAME_PREFIX_INTERN   _SCOTCH
+#define SCOTCH_NAME_PREFIX_PUBLICFL scotchf
+#define SCOTCH_NAME_PREFIX_PUBLICFU SCOTCHF
 
-#define fileNameDistExpand          _SCOTCHfileNameDistExpand 
+#define SCOTCH_NAME_GLUE2(n,s)      n##s
+#define SCOTCH_NAME_GLUE3(p,n,s)    p##n##s
+#define SCOTCH_NAME_MACRO2(n,s)     SCOTCH_NAME_GLUE2 (n,s)
+#define SCOTCH_NAME_MACRO3(p,n,s)   SCOTCH_NAME_GLUE3 (p,n,s)
+#define SCOTCH_NAME_INTERN(f)       SCOTCH_NAME_MACRO3 (SCOTCH_NAME_PREFIX_INTERN,f,SCOTCH_NAME_SUFFIXC)
+#define SCOTCH_NAME_PUBLIC(f)       SCOTCH_NAME_MACRO2 (f,SCOTCH_NAME_SUFFIXC)
+#define SCOTCH_NAME_PUBLICFL(f)     SCOTCH_NAME_MACRO3 (SCOTCH_NAME_PREFIX_PUBLICFL,f,SCOTCH_NAME_SUFFIXFL)
+#define SCOTCH_NAME_PUBLICFU(f)     SCOTCH_NAME_MACRO3 (SCOTCH_NAME_PREFIX_PUBLICFU,f,SCOTCH_NAME_SUFFIXFU)
+#define SCOTCH_FORTRAN(nu,nl,pl,pc) FORTRAN (SCOTCH_NAME_PUBLICFU(nu),SCOTCH_NAME_PUBLICFL(nl),pl,pc)
 
-#define usagePrint                  _SCOTCHusagePrint
+#define errorPrint                  SCOTCH_NAME_MACRO2 (SCOTCH_, errorPrint) /* Same name whatever the suffix is since external library */
+#define errorPrintW                 SCOTCH_NAME_MACRO2 (SCOTCH_, errorPrintW)
+#define errorProg                   SCOTCH_NAME_MACRO2 (SCOTCH_, errorProg)
 
-#define errorPrint                  SCOTCH_errorPrint
-#define errorPrintW                 SCOTCH_errorPrintW
-#define errorProg                   SCOTCH_errorProg
-
-#define intLoad                     _SCOTCHintLoad
-#define intSave                     _SCOTCHintSave
-#define intAscn                     _SCOTCHintAscn
-#define intPerm                     _SCOTCHintPerm
-#define intRandReset                _SCOTCHintRandReset
-#define intRandInit                 _SCOTCHintRandInit
-/* #define intRandVal               _SCOTCHintRandVal Already a macro */
-#define intSearchDicho              _SCOTCHintSearchDicho
-#define intSort1asc1                _SCOTCHintSort1asc1
-#define intSort2asc1                _SCOTCHintSort2asc1
-#define intSort2asc2                _SCOTCHintSort2asc2
-#define intSort3asc1                _SCOTCHintSort3asc1
-
-#define memAllocGroup               _SCOTCHmemAllocGroup
-#define memReallocGroup             _SCOTCHmemReallocGroup
-#define memOffset                   _SCOTCHmemOffset
+#define intSort1asc1                SCOTCH_NAME_INTERN (intSort1asc1)
 #endif /* ((! defined SCOTCH_COMMON_EXTERNAL) || (defined SCOTCH_COMMON_RENAME)) */
 
 #ifndef ESMUMPS_NAME_PREFIX_INTERN
@@ -143,6 +183,7 @@
 #define symbolDrawColor             ESMUMPS_NAME_INTERN (symbolDrawColor)
 #define symbolDrawFunc              ESMUMPS_NAME_INTERN (symbolDrawFunc)
 #define symbolExit                  ESMUMPS_NAME_INTERN (symbolExit)
+#define symbolFaxGraph              ESMUMPS_NAME_INTERN (symbolFaxGraph)
 #define symbolInit                  ESMUMPS_NAME_INTERN (symbolInit)
 #define symbolLevf                  ESMUMPS_NAME_INTERN (symbolLevf)
 #define symbolLoad                  ESMUMPS_NAME_INTERN (symbolLoad)

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,17 +41,21 @@
 /**                factorization routine.                  **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 22 jul 1998     **/
-/**                                 to     29 sep 1998     **/
+/**                                 to   : 29 sep 1998     **/
 /**                # Version 0.1  : from : 04 apr 1999     **/
-/**                                 to     21 apr 1999     **/
+/**                                 to   : 21 apr 1999     **/
 /**                # Version 0.2  : from : 08 may 2000     **/
-/**                                 to     09 may 2000     **/
+/**                                 to   : 09 may 2000     **/
 /**                # Version 1.0  : from : 13 mar 2002     **/
-/**                                 to     08 jun 2002     **/
+/**                                 to   : 08 jun 2002     **/
 /**                # Version 1.2  : from : 23 aug 2002     **/
-/**                                 to     23 aug 2002     **/
+/**                                 to   : 23 aug 2002     **/
 /**                # Version 2.0  : from : 21 mar 2003     **/
-/**                                 to     21 mar 2003     **/
+/**                                 to   : 21 mar 2003     **/
+/**                # Version 6.0  : from : 06 feb 2020     **/
+/**                                 to   : 06 feb 2020     **/
+/**                # Version 6.1  : from : 24 feb 2020     **/
+/**                                 to   : 24 feb 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -62,6 +66,7 @@
 #ifndef SYMBOL_FAX_INCLUDED                       /* If included from other file */
 #define SYMBOL_FAX
 
+#include "module.h"
 #include "common.h"
 #include "symbol.h"
 #include "order.h"
@@ -174,7 +179,7 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
   peritax = ordeptr->peritab - baseval;
   rangtax = ordeptr->rangtab - baseval;
 
-  blokmax  = ordeptr->cblknbr * (2 + edgenbr / vertnbr) + 2; /* Estimate size of initial block array */
+  blokmax = ordeptr->cblknbr * (2 + edgenbr / vertnbr) + 2; /* Estimate size of initial block array */
 
   {                                               /* Allocate arrays for factoring   */
     INT *               ctrbtab;                  /* Array for contribution chaining */
@@ -192,11 +197,11 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
       }
       return (1);
     }
+    memset (ctrbtab, ~0, ordeptr->cblknbr * sizeof (INT)); /* Initialize column block contributions link array */
+
     cblktax = cblktab - baseval;                  /* Set based accesses */
     bloktax = bloktab - baseval;
     ctrbtax = ctrbtab - baseval;
-
-    memset (ctrbtab, ~0, ordeptr->cblknbr * sizeof (INT)); /* Initialize column block contributions link array */
   }
 
   bloknum = baseval;
@@ -233,7 +238,7 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
            ctrbtmp != ~0; ctrbtmp = ctrbtax[ctrbtmp])
         ctrbsum += cblktax[ctrbtmp + 1].bloknum - cblktax[ctrbtmp].bloknum - 2; /* Sum contributing column blocks */
 
-      tlokmax = degrsum + ctrbsum;
+      tlokmax = degrsum + ctrbsum;                /* Maximum possible number of blocks in temporary area */
       sortoft = tlokmax * sizeof (SymbolBlok);
       if ((hashsiz * sizeof (INT)) > sortoft)     /* Compute offset of sort area */
         sortoft = (hashsiz * sizeof (INT));
@@ -246,7 +251,8 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
 
         do
           blokmax = blokmax + (blokmax >> 2) + 4; /* Increase block array size by 25% as long as it does not fit */
-        while (((byte *) (bloktax + bloknum) + tlndoft) > ((byte *) (bloktax + blokmax)));
+        while (((byte *) (bloktax + bloknum) + tlndoft) >
+               ((byte *) (bloktax + blokmax)));
 
         if ((bloktmp = (SymbolBlok *) memRealloc (bloktax + baseval, (blokmax * sizeof (SymbolBlok)))) == NULL) {
           errorPrint ("symbolFax: out of memory (2)");
@@ -301,7 +307,9 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
       bloktax[bloknum].frownum = cblktax[cblknum].fcolnum; /* Build diagonal block */
       bloktax[bloknum].lrownum = cblktax[cblknum].lcolnum;
       bloktax[bloknum].cblknum = cblknum;
+#ifdef SYMBOL_HAS_LEVFVAL
       bloktax[bloknum].levfval = 0;
+#endif /* SYMBOL_HAS_LEVFVAL */
       bloknum ++;
 
       for (sortnum = 0; sortnum < sortnbr; ) {    /* For all entries in sorted array */
@@ -329,23 +337,29 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
                (sorttab[sortnum] < rangtax[cblkctr + 1])) ;
         bloktax[bloknum].lrownum = sorttab[sortnum - 1]; /* Set end of block */
         bloktax[bloknum].cblknum = cblkctr;
+#ifdef SYMBOL_HAS_LEVFVAL
         bloktax[bloknum].levfval = 0;
+#endif /* SYMBOL_HAS_LEVFVAL */
         bloknum ++;                               /* One more block */
       }
     }
-    else {                                        /* Column will be updated           */
-      INT                 sortnum;                /* Current index in sort array      */
-      INT                 tloknum;                /* Current index on temporary block */
-      INT                 tlokfre;                /* Index of first free block        */
+    else {                                        /* Column will be updated             */
+      INT                 sortnum;                /* Current index in sort array        */
+      INT                 tloknum;                /* Current index on temporary block   */
+      INT                 tlokfre;                /* Index of first free chained block  */
+      INT                 tlokfrm;                /* Index of next free unchained block */
+#ifdef FAX_DEBUG
+      INT                 tlokmax;                /* Maximum index of reserved space    */
+#endif /* FAX_DEBUG */
 
       tloktab->frownum = cblktax[cblknum].fcolnum; /* Build diagonal chained block */
       tloktab->lrownum = cblktax[cblknum].lcolnum;
       tloktab->cblknum = cblknum;
       tloktab->nextnum = 1;
-      tloknum = 1;
 
-      for (sortnum = 0; sortnum < sortnbr; ) {    /* For all entries in sorted array */
-        INT                 colend;               /* Column number of current entry  */
+      tloknum = 1;                                /* Prepare for extra-diagonal blocks */
+      for (sortnum = 0; sortnum < sortnbr; ) {    /* For all entries in sorted array   */
+        INT                 colend;               /* Column number of current entry    */
 
         colend = sorttab[sortnum];
         if (colend >= rangtax[cblkctr + 1]) {     /* If column block number to be found */
@@ -369,17 +383,18 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
         tloktab[tloknum].lrownum = sorttab[sortnum - 1]; /* Set end of block */
         tloktab[tloknum].cblknum = cblkctr;
         tloktab[tloknum].nextnum = tloknum + 1;   /* Chain block */
-        tloknum = tloknum + 1;
+        tloknum ++;
       }
       tloktab[tloknum].frownum =                  /* Build trailing block */
       tloktab[tloknum].lrownum = vertnbr + baseval;
       tloktab[tloknum].cblknum = ordeptr->cblknbr + baseval;
       tloktab[tloknum].nextnum = 0;               /* Set end of chain (never chain to diagonal block) */
 
-      tlokfre = ++ tloknum;                       /* Build free chain for possible contributing blocks */
-      for ( ; tloknum < tlokfre + ctrbsum; tloknum = tloknum + 1)
-        tloktab[tloknum].nextnum = tloknum + 1;
-      tloktab[tloknum].nextnum = ~0;              /* Set end of free chain */
+      tlokfre = ~0;                               /* Chain of free blocks is empty          */
+      tlokfrm = tloknum + 1;                      /* First allocatable unchained free block */
+#ifdef FAX_DEBUG
+      tlokmax = tlokfrm + ctrbsum;                /* Index after end of array */
+#endif /* FAX_DEBUG */
 
       for (cblkctr = ctrbtax[cblknum]; cblkctr != ~0; cblkctr = ctrbtax[cblkctr]) { /* Follow chain */
         INT                 blokctr;              /* Current index of contributing column block     */
@@ -400,15 +415,16 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
               (bloktax[blokctr].lrownum < tloktab[tloknum].frownum - 1)) {
             INT                 tloktmp;
 
+            if (tlokfre == ~0) {                  /* If no available chained free block */
 #ifdef FAX_DEBUG
-            if (tlokfre == ~0) {
-              errorPrint ("symbolFax: internal error (1)");
-              memFree    (bloktax + baseval);
-              memFree    (cblktax + baseval);
-              memFree    (ctrbtax + baseval);
-              return     (1);
-            }
+              if (tlokfrm >= tlokmax) {
+                errorPrint ("symbolFax: internal error (1)");
+                return     (1);
+              }
 #endif /* FAX_DEBUG */
+	      tlokfre = tlokfrm ++;               /* New free block is first unchained block */
+              tloktab[tlokfre].nextnum = ~0;      /* Make it the end of its own pseudo-chain */
+            }
             tloktmp                  =
             tloktab[tloklst].nextnum = tlokfre;   /* Chain new block                */
             tloktab[tlokfre].frownum = bloktax[blokctr].frownum; /* Copy block data */
@@ -450,7 +466,9 @@ const Order * const         ordeptr)              /*+ Matrix ordering           
         bloktax[bloknum].frownum = tloktab[tloknum].frownum;
         bloktax[bloknum].lrownum = tloktab[tloknum].lrownum;
         bloktax[bloknum].cblknum = tloktab[tloknum].cblknum;
+#ifdef SYMBOL_HAS_LEVFVAL
         bloktax[bloknum].levfval = 0;
+#endif /* SYMBOL_HAS_LEVFVAL */
       }
     }
     if ((bloknum - cblktax[cblknum].bloknum) > 2) { /* If more than one extra-diagonal blocks exist                 */
