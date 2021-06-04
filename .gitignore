@@ -21,6 +21,7 @@ src/scotch/amk_m2
 src/scotch/amk_p2
 src/scotch/atst
 src/scotch/gbase
+src/scotch/gdump
 src/scotch/gcv
 src/scotch/gmap
 src/scotch/gmk_hy
